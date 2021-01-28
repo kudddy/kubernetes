@@ -143,11 +143,12 @@ NOTES:
   $ Helm test elasticsearch
 Copy
 As noted at the end of the output, you can verify your Elasticsearch pods status with:
-
+```
 kubectl get pods --namespace=default -l app=elasticsearch-master -w 
+```
 Copy
 It might take a minute or two, but eventually, three Elasticsearch pods will be shown as running:
-
+```
 NAME                     READY     STATUS     RESTARTS   AGE
 elasticsearch-master-0   1/1       Running   0         1m
 elasticsearch-master-2   1/1       Running   0         1m
@@ -201,7 +202,9 @@ kibana-kibana-6d7466b9b9-fbmsz   1/1       Running   0          2m
 Copy
 And last but not least, set up port forwarding for Kibana with: 
 ```
-kubectl port-forward deployment/kibana-kibana 5601 
+```
+kubectl port-forward deployment/kibana-kibana 5601
+```
 Copy
 You can now access Kibana from your browser at: http://localhost:5601:
 
@@ -218,9 +221,9 @@ apiVersion: v1
 metadata:
   name: filebeat-filebeat-config
   namespace: default
-  uid: 6ccdb757-2732-4a58-b012-a65bf2b41668
-  resourceVersion: '17283'
-  creationTimestamp: '2021-01-27T16:45:15Z'
+  uid: 77b1e335-0854-4434-a58d-145f272681f1
+  resourceVersion: '4573'
+  creationTimestamp: '2021-01-28T13:54:04Z'
   labels:
     app: filebeat-filebeat
     chart: filebeat-7.10.2
@@ -230,7 +233,7 @@ metadata:
     - manager: Go-http-client
       operation: Update
       apiVersion: v1
-      time: '2021-01-27T16:45:15Z'
+      time: '2021-01-28T13:54:04Z'
       fieldsType: FieldsV1
       fieldsV1:
         'f:data': {}
@@ -244,30 +247,41 @@ metadata:
     - manager: dashboard
       operation: Update
       apiVersion: v1
-      time: '2021-01-27T16:57:11Z'
+      time: '2021-01-28T14:58:14Z'
       fieldsType: FieldsV1
       fieldsV1:
         'f:data':
           'f:filebeat.yml': {}
 data:
   filebeat.yml: |
-    filebeat.inputs:
-    - type: container
-      paths:
-        - /var/log/containers/application.log
-      json:
-        keys_under_root: true
-        overwrite_keys: true
-        message_key: 'message'
-      processors:
-      - decode_json_fields:
-          fields: ['message']
-          target: json
+    filebeat.autodiscover:
+      providers:
+        - type: kubernetes
+          templates:
+            - condition:
+                equals:
+                  kubernetes.container.name: flask-frontend
+              config:
+                - type: container
+                  paths:
+                    - /var/log/containers/*-${data.kubernetes.container.id}.log
+    # filebeat.inputs:
+    # - type: container
+    #   paths:
+    #     - /var/log/containers/*.log
+    #   processors:
+    #   - add_kubernetes_metadata:
+    #       host: ${NODE_NAME}
+    #       matchers:
+    #       - logs_path:
+    #           logs_path: "/var/log/containers/"
+
     output.elasticsearch:
       host: '${NODE_NAME}'
       hosts: '${ELASTICSEARCH_HOSTS:elasticsearch-master:9200}'
 ```
-
+P.S, чтобы все логи не сыпались с разные контейнеров нужно написть условия для filebeat
+Побробнее тут: https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover.html
 # Summary
 
 we deploy elk stack 
