@@ -212,9 +212,13 @@ You can now access Kibana from your browser at: http://localhost:5601:
 
 Advanced filebeat Configurations with Helm Charts
 ```
+```
 helm install --name filebeat elastic/filebeat
 ```
+
 and configurate this
+
+
 ```
 kind: ConfigMap
 apiVersion: v1
@@ -285,3 +289,10 @@ P.S, чтобы все логи не сыпались с разные конте
 # Summary
 
 we deploy elk stack 
+
+
+# Установка memcache c помощью HELM
+
+```
+helm install stable/memcached --name mycache --set replicaCount=3
+``` 
